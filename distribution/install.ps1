@@ -3,10 +3,11 @@
 #   powershell -c "irm https://releases.herdr.dev/app/install.ps1 | iex"
 #
 # The app into %LOCALAPPDATA%\Programs\herdr-app (added to your PATH for
-# `herdr-app`), Herdr in the Start menu. The core, with its own installer,
-# only if none is there yet; the app keeps it current after that. Running it
-# again updates the app (an open one keeps running until it quits). No admin
-# needed. HERDR_RELEASES_URL points elsewhere (tests).
+# `herdr-app`), Herdr in the Start menu. The core, with its own installer
+# (the Arm build on an Arm PC), only if none is there yet; the app keeps it
+# current after that. Running it again updates the app (an open one keeps
+# running until it quits). No admin needed. HERDR_RELEASES_URL points
+# elsewhere (tests).
 
 # Its own scope: under `irm | iex` it would otherwise set the caller's variables.
 & {
@@ -18,8 +19,14 @@ function Fail($why) { throw "herdr: $why" }
 
 $releases = if ($env:HERDR_RELEASES_URL) { $env:HERDR_RELEASES_URL.TrimEnd("/") } else { "https://releases.herdr.dev" }
 $dir = Join-Path $env:LOCALAPPDATA "Programs\herdr-app"
-$arch = if ($env:PROCESSOR_ARCHITEW6432) { $env:PROCESSOR_ARCHITEW6432 } else { $env:PROCESSOR_ARCHITECTURE }
-if ($arch -ne "AMD64") { Fail "no build for $arch Windows yet (x64 only)" }
+# Windows' own CPU, from the machine's settings: an x64 PowerShell on an Arm
+# PC says AMD64 for itself.
+$arch = [Environment]::GetEnvironmentVariable("PROCESSOR_ARCHITECTURE", "Machine")
+if (-not $arch) { $arch = if ($env:PROCESSOR_ARCHITEW6432) { $env:PROCESSOR_ARCHITEW6432 } else { $env:PROCESSOR_ARCHITECTURE } }
+# The app is x64 only; Arm PCs run it emulated, which takes Windows 11. The
+# core below gets its own Arm build there.
+if ($arch -eq "ARM64" -and [Environment]::OSVersion.Version.Build -lt 22000) { Fail "on Arm, Herdr needs Windows 11 (it runs as x64)" }
+if ($arch -ne "AMD64" -and $arch -ne "ARM64") { Fail "no build for $arch Windows (x64 and Arm64 only)" }
 $target = "windows-x86_64"
 # Windows' own tar: Git Bash's, often first on PATH, takes C:\ for a remote host.
 $tar = Join-Path $env:SystemRoot "System32\tar.exe"

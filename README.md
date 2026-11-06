@@ -25,7 +25,7 @@ brew install --cask herdr-app
 
 ### Windows
 
-Run in PowerShell on x64 Windows with curl and tar installed (Windows 10 1803 or newer):
+Run in PowerShell on Windows with curl and tar installed (x64: Windows 10 1803 or newer; Arm: Windows 11, where the app runs as x64 and herdr-core runs natively):
 
 ```powershell
 irm https://releases.herdr.dev/app/install.ps1 | iex
