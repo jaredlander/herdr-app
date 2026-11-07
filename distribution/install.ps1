@@ -18,7 +18,10 @@ function Fail($why) { throw "herdr: $why" }
 
 $releases = if ($env:HERDR_RELEASES_URL) { $env:HERDR_RELEASES_URL.TrimEnd("/") } else { "https://releases.herdr.dev" }
 $dir = Join-Path $env:LOCALAPPDATA "Programs\herdr-app"
-$arch = if ($env:PROCESSOR_ARCHITEW6432) { $env:PROCESSOR_ARCHITEW6432 } else { $env:PROCESSOR_ARCHITECTURE }
+# Windows' own CPU, from the machine's settings: an x64 PowerShell on an Arm
+# PC says AMD64 for itself.
+$arch = [Environment]::GetEnvironmentVariable("PROCESSOR_ARCHITECTURE", "Machine")
+if (-not $arch) { $arch = if ($env:PROCESSOR_ARCHITEW6432) { $env:PROCESSOR_ARCHITEW6432 } else { $env:PROCESSOR_ARCHITECTURE } }
 $target = switch ($arch) {
     "AMD64" { "windows-x86_64" }
     "ARM64" { "windows-aarch64" }
