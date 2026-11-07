@@ -43,7 +43,6 @@ on:
       - .github/workflows/release.yml
   # Builds only; publishing needs a tag.
   workflow_dispatch:
-  pull_request: # TEMP: verify the windows-aarch64 build on this PR; remove before merge
 
 permissions:
   contents: read
