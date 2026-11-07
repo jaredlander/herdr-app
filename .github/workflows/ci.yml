@@ -40,7 +40,8 @@ jobs:
           - { platform: linux-x86_64, runner: ubuntu-22.04 }
           - { platform: macos-aarch64, runner: macos-15 }
           - { platform: windows-x86_64, runner: windows-2022 }
-          - { platform: windows-aarch64, runner: windows-11-arm }
+          # Windows PowerShell starts slowly on this runner; the tests that run it allow for that.
+          - { platform: windows-aarch64, runner: windows-11-arm, slow_powershell: '1' }
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 45
     defaults:
@@ -128,6 +129,8 @@ jobs:
           path: *cache-paths
           key: ${{ steps.cache.outputs.cache-primary-key }}
       - name: Tests
+        env:
+          HERDR_TEST_SLOW_POWERSHELL: ${{ matrix.slow_powershell }}
         run: |
           only=()
           if [ "$RUNNER_OS" != Linux ]; then
